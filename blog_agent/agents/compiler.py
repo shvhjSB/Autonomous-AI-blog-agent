@@ -64,15 +64,13 @@ def plan_images(state: BlogState) -> dict:
     merged_md = state["merged_md"]
 
     try:
-        # Send truncated markdown — image planner only needs structure/headings
-        md_preview = merged_md[:6000]
         image_plan = invoke_structured(
             system_prompt=IMAGE_PLANNER_PROMPT,
             user_content=(
                 f"Blog kind: {plan.blog_kind}\n"
-                f"Topic: {str(state['topic'])[:300]}\n"
+                f"Topic: {str(state['topic'])[:500]}\n"
                 f"Number of sections: {len(plan.tasks)}\n\n"
-                f"Full blog markdown:\n\n{md_preview}"
+                f"Full blog markdown:\n\n{merged_md}"
             ),
             schema=GlobalImagePlan,
         )
