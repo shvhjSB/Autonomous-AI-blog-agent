@@ -8,13 +8,11 @@ plus thin wrappers that eliminate boilerplate across agent nodes.
 from __future__ import annotations
 
 import logging
-import time
 from functools import lru_cache
-from threading import Lock
 from typing import TypeVar
 
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_openai import ChatOpenAI
 
 from blog_agent.config import get_settings
 
@@ -22,37 +20,25 @@ logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
-RATE_LIMIT_SECONDS = 12  # Gemini free tier = 5 req/min
-_last_call_time = 0
-_lock = Lock()
-
-def rate_limiter():
-    global _last_call_time
-    
-    with _lock:
-        now = time.time()
-        elapsed = now - _last_call_time
-        
-        if elapsed < RATE_LIMIT_SECONDS:
-            time.sleep(RATE_LIMIT_SECONDS - elapsed)
-            
-        _last_call_time = time.time()
-
 
 @lru_cache(maxsize=1)
-def get_llm() -> ChatGoogleGenerativeAI:
+def get_llm() -> ChatOpenAI:
     """
     Return a cached LLM client configured from application settings.
     """
 
     settings = get_settings()
 
-    logger.info("Initializing LLM → Gemini Flash")
+    # Default to a stable model if .env is missing or incorrect
+    model_name = settings.llm_model or "gpt-4o-mini"
 
-    return ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash",
-        google_api_key=settings.google_api_key,
+    logger.info("Initializing LLM → %s", model_name)
+
+    return ChatOpenAI(
+        model=model_name,
+        api_key=settings.openai_api_key,
         temperature=0.2,
+        timeout=120,
     )
 
 
@@ -65,7 +51,6 @@ def invoke_structured(
     Call the LLM and parse the response into a Pydantic model.
     """
 
-    rate_limiter()
     llm = get_llm()
 
     structured = llm.with_structured_output(schema)
@@ -87,7 +72,6 @@ def invoke_text(system_prompt: str, user_content: str) -> str:
     Call the LLM and return the plain-text response.
     """
 
-    rate_limiter()
     llm = get_llm()
 
     response = llm.invoke(
