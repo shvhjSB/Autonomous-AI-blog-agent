@@ -21,14 +21,11 @@ def writer_node(payload: dict) -> dict:
     # Bullet formatting
     bullets_text = "\n- " + "\n- ".join(task.bullets)
 
-    # Structured evidence for reliable citations
+    # Compact evidence format (max 8 items to reduce per-writer token cost)
     evidence_text = "\n".join(
-        (
-            f"{i+1}. Title: {e.title}\n"
-            f"   URL: {e.url}\n"
-            f"   Snippet: {e.snippet}\n"
-        )
-        for i, e in enumerate(evidence[:15])
+        f"{i+1}. [{e.title}]({e.url}) — {e.snippet}"
+        for i, e in enumerate(evidence[:8])
+        if e.snippet
     )
 
     try:

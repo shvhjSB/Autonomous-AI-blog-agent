@@ -71,10 +71,10 @@ def researcher_node(state: BlogState) -> dict:
     logger.info("Collected %d raw search results.", len(raw))
 
     # -----------------------------------------------------
-    # Limit token size for LLM
+    # Limit token size for LLM (cost optimization)
     # -----------------------------------------------------
 
-    raw_str = str(raw)[:12000]
+    raw_str = str(raw)[:8000]
 
     # -----------------------------------------------------
     # Synthesize evidence with LLM
@@ -133,6 +133,16 @@ def researcher_node(state: BlogState) -> dict:
                 filtered.append(e)
 
         evidence = filtered
+
+    # -----------------------------------------------------
+    # Trim snippets for downstream token savings
+    # Each snippet is sent to planner + every writer call,
+    # so shorter snippets multiply savings across the pipeline
+    # -----------------------------------------------------
+
+    for e in evidence:
+        if e.snippet and len(e.snippet) > 150:
+            e.snippet = e.snippet[:150].rsplit(" ", 1)[0] + "…"
 
     logger.info("Synthesised %d evidence items.", len(evidence))
 
