@@ -157,11 +157,33 @@ cp .env.example .env
 
 ## ⚠️ Demo Publishing Notice
 
-> **Blogs published from this app's Streamlit UI will appear on the developer's Hashnode blog** unless you provide your own tokens in `.env`.
+> **Blogs published from this app's Streamlit UI will appear on the developer's Hashnode blog** unless you provide your own tokens.
 >
 > To publish to your own blog:
-> 1. Add your own `DEVTO_API_KEY` or `HASHNODE_TOKEN` + `HASHNODE_PUBLICATION_ID` to `.env`
+> 1. Add your own `DEVTO_API_KEY` or `HASHNODE_TOKEN` + `HASHNODE_PUBLICATION_ID` to your environment (`.env` locally, or Secrets on Streamlit Cloud)
 > 2. Or download the Markdown and upload it manually to your platform
+
+---
+
+## ☁️ Deploy on Streamlit Cloud
+
+1. Go to [share.streamlit.io](https://share.streamlit.io)
+2. Connect your GitHub account
+3. Select this repository: `shvhjSB/Autonomous-AI-blog-agent`
+4. Set **Main file path** to `app.py`
+5. Open **Advanced settings → Secrets** and add your API keys:
+
+```toml
+OPENAI_API_KEY = "sk-..."
+TAVILY_API_KEY = "tvly-..."
+GOOGLE_API_KEY = "AIza..."
+HASHNODE_TOKEN = "your_token"
+HASHNODE_PUBLICATION_ID = "your_pub_id"
+```
+
+6. Click **Deploy**
+
+> **Note:** Streamlit Cloud injects secrets as environment variables. The app uses `pydantic-settings` which reads environment variables automatically — no code changes needed.
 
 ---
 
