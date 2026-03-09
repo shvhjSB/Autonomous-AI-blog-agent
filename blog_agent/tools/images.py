@@ -133,20 +133,7 @@ def generate_image(spec: dict, output_dir: Path) -> Path:
     if path.exists():
         return path
 
-    # Try Gemini
-    try:
-        img = _gemini_generate_image_bytes(prompt)
-
-        path.write_bytes(img)
-
-        logger.info("Image generated via Gemini: %s", path)
-
-        return path
-
-    except Exception as e:
-        logger.warning("Gemini image generation failed: %s", e)
-
-    # Try OpenAI
+    # Try OpenAI first
     try:
         img = _openai_generate_image_bytes(prompt)
 
@@ -158,6 +145,19 @@ def generate_image(spec: dict, output_dir: Path) -> Path:
 
     except Exception as e:
         logger.warning("OpenAI image generation failed: %s", e)
+
+    # Try Gemini as fallback
+    try:
+        img = _gemini_generate_image_bytes(prompt)
+
+        path.write_bytes(img)
+
+        logger.info("Image generated via Gemini: %s", path)
+
+        return path
+
+    except Exception as e:
+        logger.warning("Gemini image generation failed: %s", e)
 
     # Placeholder fallback
     img = _create_placeholder_image("Image Placeholder")
