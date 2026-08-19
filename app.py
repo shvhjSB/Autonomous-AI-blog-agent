@@ -109,8 +109,21 @@ def _chrome_css(theme: str) -> str:
 {_pixel_font_face()}
 {design.css_variables(theme)}
 
-/* Streamlit's own toolbar breaks the cabinet illusion. */
-#MainMenu, header[data-testid="stHeader"], footer {{ visibility: hidden; height: 0; }}
+/* Streamlit's own toolbar breaks the cabinet illusion — but the button that
+   reopens a collapsed sidebar (stExpandSidebarButton) lives INSIDE that same
+   header. Hiding the whole header with visibility:hidden cascades to it too,
+   with no way to override it back on — collapse the sidebar once and it's
+   gone for good. So the header itself stays laid out (just made invisible as
+   a background), and only its decorative children are hidden by name; the
+   sidebar toggle is explicitly forced back to visible. */
+#MainMenu, footer {{ visibility: hidden; height: 0; }}
+header[data-testid="stHeader"] {{ background: transparent; }}
+header[data-testid="stHeader"] [data-testid="stMainMenuButton"],
+header[data-testid="stHeader"] [data-testid="stToolbarActions"],
+header[data-testid="stHeader"] [data-testid="stStatusWidget"] {{ visibility: hidden; }}
+header[data-testid="stHeader"] [data-testid="stExpandSidebarButton"] {{
+  visibility: visible !important;
+}}
 
 .block-container {{ max-width: 1040px; padding-top: 2.2rem; }}
 
