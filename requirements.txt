@@ -1,8 +1,11 @@
-# 1.61 is the version this UI is built and verified against. The redesign uses
-# st.container(key=...) (1.48+), [[theme.fontFaces]], buttonRadius,
-# headingFontSizes and [theme.sidebar] — on older releases the app raises a
-# TypeError and silently loses all theming.
-streamlit>=1.61.0
+# Pinned exact, not a floor. This UI's CSS reaches into Streamlit's internal
+# DOM by data-testid (e.g. the sidebar reopen button, stExpandSidebarButton),
+# and those names have already changed between minor releases. A floating
+# `>=` constraint lets the deploy target install a newer version whose DOM
+# doesn't match this CSS at all — exactly the failure mode that broke the
+# sidebar on Streamlit Cloud. Bump this deliberately, verify the CSS against
+# the new version's DOM, then bump the pin — never let it float.
+streamlit==1.61.1
 langgraph>=1.0.0
 langchain-google-genai>=2.0
 langchain-openai>=0.3.0
