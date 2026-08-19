@@ -16,6 +16,19 @@ def writer_node(payload: dict) -> dict:
     plan = Plan(**payload["plan"])
     evidence = [EvidenceItem(**e) for e in payload.get("evidence", [])]
 
+    mode = payload.get("mode")
+
+    # Without evidence, open_book's "cite everything or say you couldn't" rule
+    # produces a section made almost entirely of "Not found in provided
+    # sources". Writing from general knowledge is far more useful, so the mode
+    # is downgraded when research came back empty.
+    if not evidence and mode in ("open_book", "hybrid"):
+        logger.warning(
+            "Section %d: no evidence available — writing closed_book instead "
+            "of %s.", task.id, mode,
+        )
+        mode = "closed_book"
+
     logger.info("Writing section %d: %s", task.id, task.title)
 
     # Bullet formatting
@@ -41,7 +54,7 @@ def writer_node(payload: dict) -> dict:
                 f"Blog kind: {plan.blog_kind}\n"
                 f"Constraints: {plan.constraints}\n"
                 f"Topic: {str(payload['topic'])[:500]}\n"
-                f"Mode: {payload.get('mode')}\n"
+                f"Mode: {mode}\n"
                 f"As-of: {payload.get('as_of')} "
                 f"(recency_days={payload.get('recency_days')})\n\n"
 

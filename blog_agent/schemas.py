@@ -22,8 +22,17 @@ class Task(BaseModel):
     id: int
     title: str
     goal: str = Field(..., description="One sentence: what the reader learns.")
-    bullets: List[str] = Field(..., min_length=3, max_length=6)
-    target_words: int = Field(..., description="Target word count (120–550).")
+    # Deliberately unconstrained: Gemini's schema converter drops minItems /
+    # maxItems, so a hard Pydantic bound would reject otherwise-good plans and
+    # fall back to the stub outline. The count is requested in the planner
+    # prompt and clamped in planner._normalize_plan instead.
+    bullets: List[str] = Field(
+        default_factory=list,
+        description="3-6 bullet points outlining the section flow.",
+    )
+    target_words: int = Field(
+        default=300, description="Target word count (120-550)."
+    )
 
     tags: List[str] = Field(default_factory=list)
     requires_research: bool = False
@@ -86,6 +95,17 @@ class ImageSpec(BaseModel):
     alt: str
     caption: str
     prompt: str = Field(..., description="Detailed prompt for the image model.")
+
+    # Structural diagrams render far better as Mermaid than as generated
+    # pixels — labels stay legible and it costs nothing. When this is set the
+    # compiler emits a ```mermaid block instead of calling an image backend.
+    mermaid: Optional[str] = Field(
+        default=None,
+        description=(
+            "Mermaid source (e.g. 'flowchart LR\\n  A[Docs] --> B[Chunker]') "
+            "for structural diagrams. Null for pictorial illustrations."
+        ),
+    )
     image_type: Literal[
         "architecture_diagram",
         "flowchart",
@@ -164,3 +184,22 @@ class BlogState(TypedDict):
 
     # SEO metadata
     seo_metadata: Optional[SEOMetadata]
+
+    # Citation verification results (see blog_agent/tools/citations.py)
+    citation_report: Optional[dict]
+
+
+class CompilerOutput(TypedDict):
+    """Keys the compiler subgraph is allowed to write back to the parent graph.
+
+    Without an explicit output schema the subgraph returns its whole state,
+    including ``sections`` — which the parent's ``operator.add`` reducer would
+    then append a second time, duplicating every section.
+    """
+
+    status: str
+    merged_md: str
+    md_with_placeholders: str
+    image_specs: List[ImageSpec]
+    final: str
+    citation_report: Optional[dict]

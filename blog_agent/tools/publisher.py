@@ -3,8 +3,10 @@ Blog publishing utilities.
 
 Publishes generated blog posts to external platforms:
 - Dev.to
-- Hashnode
-- Medium (placeholder)
+
+Hashnode support was removed on 2026-08-17: its GraphQL API became Pro-only
+(https://hashnode.com/changelog/2026-05-13-graphql-api-paid-access), so both
+queries and mutations fail on a free account.
 
 Also provides an export-package helper for JSON download.
 """
@@ -13,6 +15,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from typing import List, Optional
 
 import requests
@@ -20,6 +23,12 @@ import requests
 from blog_agent.config import get_settings
 
 logger = logging.getLogger(__name__)
+
+
+def _slugify(text: str) -> str:
+    """Convert text into a URL-safe, hyphen-separated slug."""
+    s = re.sub(r"[^a-z0-9]+", "-", text.strip().lower()).strip("-")
+    return s[:250] or "untitled"
 
 
 # ---------------------------------------------------------------------------
@@ -44,8 +53,12 @@ def publish_to_devto(
 
     logger.info("Publishing blog to Dev.to: %s", title[:60])
 
-    # Dev.to limits tags to 4 and lowercase
-    clean_tags = [t.lower().replace(" ", "") for t in (tags or [])][:4]
+    # Dev.to allows at most 4 tags and rejects non-alphanumeric characters
+    clean_tags = [
+        cleaned
+        for cleaned in (re.sub(r"[^a-z0-9]", "", t.lower()) for t in (tags or []))
+        if cleaned
+    ][:4]
 
     payload = {
         "article": {
@@ -79,84 +92,6 @@ def publish_to_devto(
 
     except Exception as exc:
         logger.error("Dev.to publish error: %s", exc)
-        return {"success": False, "error": str(exc)}
-
-
-# ---------------------------------------------------------------------------
-# Hashnode
-# ---------------------------------------------------------------------------
-
-def publish_to_hashnode(
-    title: str,
-    markdown: str,
-    tags: Optional[List[str]] = None,
-    token: Optional[str] = None,
-    publication_id: Optional[str] = None,
-) -> dict:
-    """Publish a blog post to Hashnode via GraphQL API.
-
-    Returns a dict with "success", "url", and optionally "error".
-    """
-    settings = get_settings()
-    key = token or settings.hashnode_token
-    pub_id = publication_id or settings.hashnode_publication_id
-
-    if not key:
-        return {"success": False, "error": "HASHNODE_TOKEN is not configured."}
-
-    if not pub_id:
-        return {"success": False, "error": "HASHNODE_PUBLICATION_ID is not configured."}
-
-    logger.info("Publishing blog to Hashnode: %s", title[:60])
-
-    clean_tags = [{"name": t, "slug": t.lower().replace(" ", "-")} for t in (tags or [])][:5]
-
-    query = """
-    mutation PublishPost($input: PublishPostInput!) {
-        publishPost(input: $input) {
-            post {
-                url
-                title
-            }
-        }
-    }
-    """
-    slug = title.lower().replace(" ", "-")
-    variables = {
-        "input": {
-            "title": title,
-            "slug": slug,
-            "contentMarkdown": markdown,
-            "publicationId": pub_id,
-            "tags": clean_tags,
-        }
-    }
-
-    try:
-        resp = requests.post(
-            "https://gql.hashnode.com",
-            headers={
-                "Authorization": key,
-                "Content-Type": "application/json",
-            },
-            json={"query": query, "variables": variables},
-            timeout=30,
-        )
-
-        data = resp.json()
-
-        if "errors" in data:
-            error = data["errors"][0].get("message", "Unknown error")
-            logger.error("Hashnode publish failed: %s", error)
-            return {"success": False, "error": error}
-
-        post = data.get("data", {}).get("publishPost", {}).get("post", {})
-        url = post.get("url", "")
-        logger.info("Published to Hashnode: %s", url)
-        return {"success": True, "url": url}
-
-    except Exception as exc:
-        logger.error("Hashnode publish error: %s", exc)
         return {"success": False, "error": str(exc)}
 
 

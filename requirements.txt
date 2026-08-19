@@ -1,8 +1,13 @@
-streamlit>=1.40.0
-langgraph>=0.4.0
+# 1.61 is the version this UI is built and verified against. The redesign uses
+# st.container(key=...) (1.48+), [[theme.fontFaces]], buttonRadius,
+# headingFontSizes and [theme.sidebar] — on older releases the app raises a
+# TypeError and silently loses all theming.
+streamlit>=1.61.0
+langgraph>=1.0.0
+langchain-google-genai>=2.0
 langchain-openai>=0.3.0
-langchain-community>=0.3.0
 langchain-tavily>=0.1.0
+markdown>=3.5
 openai>=1.0
 pydantic>=2.0
 pydantic-settings>=2.0

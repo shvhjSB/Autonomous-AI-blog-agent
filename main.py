@@ -56,10 +56,23 @@ def main() -> None:
     final_md = result.get("final", "")
     if final_md:
         logger.info("Blog generated successfully! (%d chars)", len(final_md))
+
+        report = result.get("citation_report")
+        if report and report.get("total"):
+            logger.info(
+                "Citations: %d cited, %d grounded in research, %d invented, "
+                "%d dead link(s).",
+                report["total"], report["grounded"],
+                len(report["ungrounded"]), len(report["dead"]),
+            )
+            for url in report["ungrounded"][:5]:
+                logger.warning("  Not in evidence (possibly invented): %s", url)
+            for url in report["dead"][:5]:
+                logger.warning("  Dead link: %s", url)
         print("\n" + "=" * 60)
         print(final_md[:500] + ("..." if len(final_md) > 500 else ""))
         print("=" * 60)
-        print(f"\nFull blog saved to the output/ directory.")
+        print("\nFull blog saved to the output/ directory.")
     else:
         logger.error("Pipeline completed but no output was produced.")
         sys.exit(1)

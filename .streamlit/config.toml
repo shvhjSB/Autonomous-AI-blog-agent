@@ -1,5 +1,81 @@
 [server]
 headless = true
+# Required so [[theme.fontFaces]] can load the self-hosted woff2 files under
+# static/. Self-hosting rather than pointing at fonts.gstatic.com keeps the app
+# working offline and immune to Google rotating its CDN paths.
+enableStaticServing = true
+
+# ---------------------------------------------------------------------------
+# Fonts — variable woff2, one file per family covering the whole weight range
+# ---------------------------------------------------------------------------
+
+[[theme.fontFaces]]
+family = "Press Start 2P"
+url = "app/static/fonts/PressStart2P.woff2"
+weight = "400"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Outfit"
+url = "app/static/fonts/Outfit.woff2"
+weight = "400 800"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Inter"
+url = "app/static/fonts/Inter.woff2"
+weight = "400 700"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "JetBrains Mono"
+url = "app/static/fonts/JetBrainsMono.woff2"
+weight = "400 500"
+style = "normal"
+
+# ---------------------------------------------------------------------------
+# Arcade cabinet — dark chrome. Values mirror blog_agent/design.py; keep in sync.
+# ---------------------------------------------------------------------------
 
 [theme]
-primaryColor = "#7c3aed"
+base = "dark"
+
+backgroundColor = "#12121F"          # CAB_BG
+secondaryBackgroundColor = "#1C1B2E" # CAB_PANEL
+textColor = "#E8E6F5"                # CAB_TEXT
+borderColor = "#2E2B47"              # CAB_BORDER
+primaryColor = "#7C3AED"             # default theme primary
+linkColor = "#22D3EE"                # accent reads well on dark
+codeBackgroundColor = "#161527"
+
+font = "Inter"
+headingFont = "Outfit"
+codeFont = "JetBrains Mono"
+baseFontSize = 16
+codeFontSize = "0.875rem"
+
+# Chunky arcade corners
+baseRadius = "10px"
+buttonRadius = "14px"
+showWidgetBorder = true
+
+# h1 is the app hero; the article's own scale lives in design.TYPE_SCALE
+headingFontSizes = ["2.75rem", "1.75rem", "1.375rem", "1.125rem", "1rem", "0.875rem"]
+headingFontWeights = [800, 700, 700, 600, 600, 600]
+
+# ---------------------------------------------------------------------------
+# Sidebar — the control panel, slightly deeper than the main cabinet
+# ---------------------------------------------------------------------------
+
+[theme.sidebar]
+backgroundColor = "#0D0D18"
+secondaryBackgroundColor = "#1C1B2E"
+textColor = "#E8E6F5"
+borderColor = "#2E2B47"
+font = "Inter"
+headingFont = "Press Start 2P"
+codeFont = "JetBrains Mono"
+baseRadius = "10px"
+buttonRadius = "14px"
+showWidgetBorder = true
+headingFontSizes = ["0.9rem", "0.8rem", "0.75rem", "0.75rem", "0.7rem", "0.7rem"]

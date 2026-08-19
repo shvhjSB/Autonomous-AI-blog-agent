@@ -35,6 +35,9 @@ def seo_optimizer_node(state: BlogState) -> dict:
             system_prompt=SEO_OPTIMIZER_PROMPT,
             user_content=f"Analyze this blog post and generate SEO metadata:\n\n{preview}",
             schema=SEOMetadata,
+            # Formulaic metadata extraction — light model, keeping the main
+            # quota for planning and writing.
+            tier="light",
         )
     except Exception as exc:
         logger.error("SEO optimizer LLM failed: %s", exc)

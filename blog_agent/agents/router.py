@@ -39,6 +39,9 @@ def router_node(state: BlogState) -> dict:
             system_prompt=ROUTER_PROMPT,
             user_content=f"Topic: {safe_topic}\nAs-of date: {state['as_of']}",
             schema=RouterDecision,
+            # Classification only — runs on the light model so it doesn't eat
+            # into the scarce writing quota.
+            tier="light",
         )
     except Exception as exc:
         logger.error("Router LLM failed: %s. Falling back to closed_book.", exc)

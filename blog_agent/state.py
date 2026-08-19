@@ -44,4 +44,5 @@ def make_initial_state(
         image_specs=[],
         final="",
         seo_metadata=None,
+        citation_report=None,
     )

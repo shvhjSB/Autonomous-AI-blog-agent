@@ -31,7 +31,7 @@ from blog_agent.agents.researcher import researcher_node
 from blog_agent.agents.router import route_after_router, router_node
 from blog_agent.agents.seo_optimizer import seo_optimizer_node
 from blog_agent.agents.writer import writer_node
-from blog_agent.schemas import BlogState
+from blog_agent.schemas import BlogState, CompilerOutput
 
 
 def build_graph():
@@ -44,7 +44,9 @@ def build_graph():
     # ------------------------------------------------------------------
     # Reducer subgraph (post-writing assembly)
     # ------------------------------------------------------------------
-    reducer = StateGraph(BlogState)
+    # output_schema keeps the subgraph from re-emitting `sections`, which the
+    # parent's operator.add reducer would otherwise append a second time.
+    reducer = StateGraph(BlogState, output_schema=CompilerOutput)
     reducer.add_node("merge_sections", merge_sections)
     reducer.add_node("plan_images", plan_images)
     reducer.add_node("generate_and_export", generate_and_export)

@@ -54,11 +54,16 @@ graph TD
 | `recency_days` | `int` | — | Router | How many days back to consider sources |
 | `sections` | `List[tuple[int, str]]` | `operator.add` | Writer (×N) | `(task_id, section_markdown)` pairs |
 | `merged_md` | `str` | — | Compiler | Joined markdown document |
-| `md_with_placeholders` | `str` | — | Compiler | Markdown with `[[IMAGE_N]]` placeholders |
-| `image_specs` | `List[dict]` | — | Compiler | Image generation specifications |
+| `md_with_placeholders` | `str` | — | Compiler | Markdown with `[IMAGE: slug]` placeholders |
+| `image_specs` | `List[ImageSpec]` | — | Compiler | Image generation specifications |
 | `final` | `str` | — | Compiler | Final rendered blog with images |
+| `seo_metadata` | `Optional[SEOMetadata]` | — | SEO Optimizer | Title, description, keywords, slug, social previews |
 
 > **Reducer fields** (`sections`, `evidence`) use `operator.add` — parallel nodes append results without conflicts.
+>
+> Because `operator.add` appends, the compiler subgraph declares an explicit
+> `output_schema` (`CompilerOutput`) so it does not re-emit `sections` and cause
+> every section to be appended twice.
 
 ---
 
@@ -114,8 +119,8 @@ A three-step reducer subgraph that runs sequentially after all writers finish:
 | Sub-node | Purpose |
 |---|---|
 | `merge_sections` | Sort sections by `task_id` and join into one markdown document |
-| `plan_images` | LLM decides where to insert image placeholders (`[[IMAGE_N]]`) |
-| `generate_and_export` | Generate images (Gemini → Pillow fallback), replace placeholders, export `.md` |
+| `plan_images` | LLM decides where to insert image placeholders (`[IMAGE: slug]`) |
+| `generate_and_export` | Generate images (OpenAI → Gemini → Pillow fallback), replace placeholders, export `.md` |
 
 ---
 
